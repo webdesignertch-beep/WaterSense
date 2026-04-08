@@ -1,21 +1,16 @@
-// --- SENSOR AND PIN DEFINITIONS ---
-const int waterSensorPin = A0; 
+const int waterSensorPin = A0;
+const int buzzerPin = 8;
+const int blueLEDPin = 9;
+const int greenLEDPin = 10;
+const int yellowLEDPin = 11;
 
-const int buzzerPin = 8;     
-const int blueLEDPin = 9;    
-const int greenLEDPin = 10;  
-const int yellowLEDPin = 11; 
-
-// --- STANDARD WATER THRESHOLDS ---
-// 0 is completely dry. Higher numbers mean more water.
-const int dryThreshold = 40;  // Anything below 40 is considered completely dry air
-const int lowWater = 100;     // Barely touching water
-const int mediumWater = 400;  // Partially submerged
-const int highWater = 800;    // Mostly/fully submerged (triggers your 1022 reading)
+const int dryThreshold = 40;
+const int lowWater = 100;
+const int mediumWater = 400;
+const int highWater = 800;
 
 void setup() {
   Serial.begin(9600);
-  
   pinMode(buzzerPin, OUTPUT);
   pinMode(blueLEDPin, OUTPUT);
   pinMode(greenLEDPin, OUTPUT);
@@ -24,17 +19,37 @@ void setup() {
 
 void loop() {
   int sensorValue = analogRead(waterSensorPin);
-  
   Serial.print("Raw Sensor Value: ");
   Serial.print(sensorValue);
 
-  // Turn everything OFF first at the start of each check
+  // Turn everything OFF first
   digitalWrite(blueLEDPin, LOW);
   digitalWrite(greenLEDPin, LOW);
   digitalWrite(yellowLEDPin, LOW);
-  digitalWrite(buzzerPin, LOW);
+  noTone(buzzerPin);  // ← FIXED
 
-  // STANDARD LOGIC: Check for highest water levels first
+  if (sensorValue >= highWater) {
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+    digitalWrite(yellowLEDPin, HIGH);
+    tone(buzzerPin, 1000);  // ← FIXED
+    Serial.println(" -> HIGH WATER ALARM!");
+  }
+  else if (sensorValue >= mediumWater) {
+    digitalWrite(greenLEDPin, HIGH);
+    digitalWrite(yellowLEDPin, HIGH);
+    Serial.println(" -> Medium Water");
+  }
+  else if (sensorValue >= lowWater) {
+    digitalWrite(yellowLEDPin, HIGH);
+    Serial.println(" -> Low Water");
+  }
+  else {
+    Serial.println(" -> Dry");
+  }
+
+  delay(500);
+}  // STANDARD LOGIC: Check for highest water levels first
   if (sensorValue >= highWater) {
     // DANGER LEVEL: High water detected
     digitalWrite(blueLEDPin, HIGH);
