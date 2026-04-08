@@ -1,0 +1,65 @@
+// --- SENSOR AND PIN DEFINITIONS ---
+const int waterSensorPin = A0; 
+
+const int buzzerPin = 8;     
+const int blueLEDPin = 9;    
+const int greenLEDPin = 10;  
+const int yellowLEDPin = 11; 
+
+// --- REVERSED WATER LEVEL THRESHOLDS ---
+// 1022 is Dry. The numbers go DOWN as it gets wetter.
+const int dryLevel = 900;    // Above 900 is dry air
+const int lowWater = 700;    // Drops below 700 when slightly submerged
+const int mediumWater = 400; // Drops below 400 when halfway submerged
+const int highWater = 150;   // Drops below 150 when mostly submerged
+
+void setup() {
+  Serial.begin(9600);
+  
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(blueLEDPin, OUTPUT);
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(yellowLEDPin, OUTPUT);
+}
+
+void loop() {
+  int sensorValue = analogRead(waterSensorPin);
+  
+  Serial.print("Current Water Level: ");
+  Serial.println(sensorValue);
+
+  // Turn everything OFF to start
+  digitalWrite(blueLEDPin, LOW);
+  digitalWrite(greenLEDPin, LOW);
+  digitalWrite(yellowLEDPin, LOW);
+  noTone(buzzerPin); // Stops the buzzer
+
+  // --- REVERSED LOGIC DECISIONS ---
+  // We use "<=" (less than or equal to) because the number drops as water rises
+  
+  if (sensorValue <= highWater) {
+    // DANGER LEVEL (Very wet, low number)
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+    digitalWrite(yellowLEDPin, HIGH);
+    tone(buzzerPin, 1000); // Plays a 1000Hz tone on the buzzer
+    Serial.println("-> STATUS: HIGH WATER ALARM!");
+  } 
+  else if (sensorValue <= mediumWater) {
+    // WARNING LEVEL 
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+    Serial.println("-> STATUS: Medium Water");
+  } 
+  else if (sensorValue <= lowWater) {
+    // CAUTION LEVEL 
+    digitalWrite(blueLEDPin, HIGH);
+    Serial.println("-> STATUS: Low Water Detected");
+  }
+  else {
+    // DRY (High numbers like 1022)
+    Serial.println("-> STATUS: Dry");
+  }
+
+  delay(500); 
+}
