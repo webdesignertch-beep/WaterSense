@@ -1,0 +1,38 @@
+const int analogInPin = A0;
+const int buzzerPin = 6;  // connect your buzzer to pin 6
+int sensorValue = 0;
+
+void setup() {
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  sensorValue = analogRead(analogInPin);
+  Serial.print("sensor = ");
+  Serial.println(sensorValue);
+  delay(500);  // slowed down — fixes RX flickering
+
+  // Turn everything OFF first, then selectively turn ON
+  digitalWrite(2, LOW);
+  digitalWrite(3, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(5, LOW);
+  digitalWrite(buzzerPin, LOW);
+
+  if (sensorValue >= 100 && sensorValue <= 600) {
+    digitalWrite(2, HIGH);                      // Low level
+  }
+  else if (sensorValue >= 601 && sensorValue <= 625) {
+    digitalWrite(3, HIGH);                      // Mid level
+  }
+  else if (sensorValue >= 626 && sensorValue <= 700) {
+    digitalWrite(4, HIGH);
+    digitalWrite(5, HIGH);
+    digitalWrite(buzzerPin, HIGH);              // High level — buzzer ON!
+  }
+}
