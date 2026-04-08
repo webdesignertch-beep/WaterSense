@@ -1,0 +1,63 @@
+// Define the input pin for the Water Sensor
+const int waterSensorPin = A0; 
+
+// Define the output pins exactly as wired
+const int buzzerPin = 8;     // Purple wire
+const int blueLEDPin = 9;    // Green wire
+const int greenLEDPin = 10;  // Orange wire
+const int yellowLEDPin = 11; // Yellow wire
+
+// Define threshold values for water levels
+// You may need to adjust these numbers based on testing
+const int lowWaterLevel = 100;
+const int mediumWaterLevel = 350;
+const int highWaterLevel = 600;
+
+void setup() {
+  // Initialize serial communication at 9600 bits per second
+  // This handles the blinking TX/RX lights and allows debugging
+  Serial.begin(9600);
+  
+  // Set the LED and Buzzer pins as outputs
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(blueLEDPin, OUTPUT);
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(yellowLEDPin, OUTPUT);
+}
+
+void loop() {
+  // Read the analog value from the water sensor (0 to 1023)
+  int sensorValue = analogRead(waterSensorPin);
+  
+  // Print the value to the Serial Monitor (Tools -> Serial Monitor)
+  Serial.print("Water Level: ");
+  Serial.println(sensorValue);
+
+  // Turn everything OFF by default at the start of each loop
+  digitalWrite(blueLEDPin, LOW);
+  digitalWrite(greenLEDPin, LOW);
+  digitalWrite(yellowLEDPin, LOW);
+  digitalWrite(buzzerPin, LOW);
+
+  // Logic to turn on LEDs and Buzzer based on water level
+  if (sensorValue > highWaterLevel) {
+    // Water is very high: Turn on all LEDs and sound the alarm
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+    digitalWrite(yellowLEDPin, HIGH);
+    digitalWrite(buzzerPin, HIGH);
+  } 
+  else if (sensorValue > mediumWaterLevel) {
+    // Water is medium: Turn on Blue and Green LEDs
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+  } 
+  else if (sensorValue > lowWaterLevel) {
+    // Water is low: Turn on Blue LED only
+    digitalWrite(blueLEDPin, HIGH);
+  }
+  // If sensorValue is below lowWaterLevel, it remains dry (all OFF)
+
+  // Wait 1 second before the next reading (causes the 1-second blink)
+  delay(1000); 
+}
