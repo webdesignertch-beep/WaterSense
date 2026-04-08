@@ -1,16 +1,21 @@
 const int waterSensorPin = A0;
+const int sensorPower = 7;
+
 const int buzzerPin = 8;
 const int blueLEDPin = 9;
 const int greenLEDPin = 10;
 const int yellowLEDPin = 11;
 
-const int dryThreshold = 40;
-const int lowWater = 100;
-const int mediumWater = 400;
-const int highWater = 800;
+const int lowWater = 150;
+const int mediumWater = 500;
+const int highWater = 950;
 
 void setup() {
   Serial.begin(9600);
+
+  pinMode(sensorPower, OUTPUT);
+  digitalWrite(sensorPower, LOW);
+
   pinMode(buzzerPin, OUTPUT);
   pinMode(blueLEDPin, OUTPUT);
   pinMode(greenLEDPin, OUTPUT);
@@ -18,65 +23,38 @@ void setup() {
 }
 
 void loop() {
+  digitalWrite(sensorPower, HIGH);
+  delay(10);
   int sensorValue = analogRead(waterSensorPin);
-  Serial.print("Raw Sensor Value: ");
-  Serial.print(sensorValue);
+  digitalWrite(sensorPower, LOW);
 
-  // Turn everything OFF first
+  Serial.print("Current Water Level: ");
+  Serial.println(sensorValue);
+
   digitalWrite(blueLEDPin, LOW);
   digitalWrite(greenLEDPin, LOW);
   digitalWrite(yellowLEDPin, LOW);
-  noTone(buzzerPin);  // ← FIXED
+  noTone(buzzerPin);
 
   if (sensorValue >= highWater) {
     digitalWrite(blueLEDPin, HIGH);
     digitalWrite(greenLEDPin, HIGH);
     digitalWrite(yellowLEDPin, HIGH);
-    tone(buzzerPin, 1000);  // ← FIXED
-    Serial.println(" -> HIGH WATER ALARM!");
+    tone(buzzerPin, 1000);
+    Serial.println("-> STATUS: HIGH WATER ALARM!");
   }
   else if (sensorValue >= mediumWater) {
+    digitalWrite(blueLEDPin, HIGH);
     digitalWrite(greenLEDPin, HIGH);
-    digitalWrite(yellowLEDPin, HIGH);
-    Serial.println(" -> Medium Water");
+    Serial.println("-> STATUS: Medium Water");
   }
   else if (sensorValue >= lowWater) {
-    digitalWrite(yellowLEDPin, HIGH);
-    Serial.println(" -> Low Water");
+    digitalWrite(blueLEDPin, HIGH);
+    Serial.println("-> STATUS: Low Water Detected");
   }
   else {
-    Serial.println(" -> Dry");
+    Serial.println("-> STATUS: Dry");
   }
 
   delay(500);
-}  // STANDARD LOGIC: Check for highest water levels first
-  if (sensorValue >= highWater) {
-    // DANGER LEVEL: High water detected
-    digitalWrite(blueLEDPin, HIGH);
-    digitalWrite(greenLEDPin, HIGH);
-    digitalWrite(yellowLEDPin, HIGH);
-    digitalWrite(buzzerPin, HIGH);
-    Serial.println(" -> STATUS: HIGH WATER ALARM!");
-  } 
-  else if (sensorValue >= mediumWater) {
-    // WARNING LEVEL 
-    digitalWrite(blueLEDPin, HIGH);
-    digitalWrite(greenLEDPin, HIGH);
-    Serial.println(" -> STATUS: Medium Water");
-  } 
-  else if (sensorValue >= lowWater) {
-    // CAUTION LEVEL 
-    digitalWrite(blueLEDPin, HIGH);
-    Serial.println(" -> STATUS: Low Water Detected");
-  }
-  else if (sensorValue <= dryThreshold) {
-    // DRY AIR: Everything stays OFF
-    Serial.println(" -> STATUS: Dry (No water)");
-  } 
-  else {
-    // Catch-all for slight dampness between 40 and 100
-    Serial.println(" -> STATUS: Slightly Damp / Air Moisture");
-  }
-
-  delay(500); 
 }
