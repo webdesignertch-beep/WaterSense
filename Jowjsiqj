@@ -1,0 +1,66 @@
+// --- SENSOR AND PIN DEFINITIONS ---
+const int waterSensorPin = A0;
+const int sensorPower = 7;   // Controls sensor power to avoid false readings
+
+const int buzzerPin = 8;
+const int blueLEDPin = 9;
+const int greenLEDPin = 10;
+const int yellowLEDPin = 11;
+
+// --- WATER LEVEL THRESHOLDS ---
+const int lowWater = 100;
+const int mediumWater = 500;
+const int highWater = 950;
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(sensorPower, OUTPUT);
+  digitalWrite(sensorPower, LOW);  // Sensor OFF by default
+
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(blueLEDPin, OUTPUT);
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(yellowLEDPin, OUTPUT);
+}
+
+void loop() {
+  // 1. Power sensor ON, read, then immediately OFF
+  digitalWrite(sensorPower, HIGH);
+  delay(10);
+  int sensorValue = analogRead(waterSensorPin);
+  digitalWrite(sensorPower, LOW);
+
+  // 2. Print reading
+  Serial.print("Current Water Level: ");
+  Serial.println(sensorValue);
+
+  // 3. Reset all outputs OFF
+  digitalWrite(blueLEDPin, LOW);
+  digitalWrite(greenLEDPin, LOW);
+  digitalWrite(yellowLEDPin, LOW);
+  noTone(buzzerPin);  // Properly silences passive buzzer
+
+  // 4. Decide what to turn ON
+  if (sensorValue >= highWater) {
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+    digitalWrite(yellowLEDPin, HIGH);
+    tone(buzzerPin, 1000);  // 1000Hz beep — change number to adjust pitch
+    Serial.println("-> STATUS: HIGH WATER ALARM!");
+  }
+  else if (sensorValue >= mediumWater) {
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+    Serial.println("-> STATUS: Medium Water");
+  }
+  else if (sensorValue >= lowWater) {
+    digitalWrite(blueLEDPin, HIGH);
+    Serial.println("-> STATUS: Low Water Detected");
+  }
+  else {
+    Serial.println("-> STATUS: Dry");
+  }
+
+  delay(500);
+}
