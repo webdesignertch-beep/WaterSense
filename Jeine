@@ -6,12 +6,12 @@ const int blueLEDPin = 9;
 const int greenLEDPin = 10;  
 const int yellowLEDPin = 11; 
 
-// --- REVERSED WATER LEVEL THRESHOLDS ---
-// 1022 is Dry. The numbers go DOWN as it gets wetter.
-const int dryLevel = 900;    // Above 900 is dry air
-const int lowWater = 700;    // Drops below 700 when slightly submerged
-const int mediumWater = 400; // Drops below 400 when halfway submerged
-const int highWater = 150;   // Drops below 150 when mostly submerged
+// --- STANDARD WATER THRESHOLDS ---
+// 0 is completely dry. Higher numbers mean more water.
+const int dryThreshold = 40;  // Anything below 40 is considered completely dry air
+const int lowWater = 100;     // Barely touching water
+const int mediumWater = 400;  // Partially submerged
+const int highWater = 800;    // Mostly/fully submerged (triggers your 1022 reading)
 
 void setup() {
   Serial.begin(9600);
@@ -25,40 +25,42 @@ void setup() {
 void loop() {
   int sensorValue = analogRead(waterSensorPin);
   
-  Serial.print("Current Water Level: ");
-  Serial.println(sensorValue);
+  Serial.print("Raw Sensor Value: ");
+  Serial.print(sensorValue);
 
-  // Turn everything OFF to start
+  // Turn everything OFF first at the start of each check
   digitalWrite(blueLEDPin, LOW);
   digitalWrite(greenLEDPin, LOW);
   digitalWrite(yellowLEDPin, LOW);
-  noTone(buzzerPin); // Stops the buzzer
+  digitalWrite(buzzerPin, LOW);
 
-  // --- REVERSED LOGIC DECISIONS ---
-  // We use "<=" (less than or equal to) because the number drops as water rises
-  
-  if (sensorValue <= highWater) {
-    // DANGER LEVEL (Very wet, low number)
+  // STANDARD LOGIC: Check for highest water levels first
+  if (sensorValue >= highWater) {
+    // DANGER LEVEL: High water detected
     digitalWrite(blueLEDPin, HIGH);
     digitalWrite(greenLEDPin, HIGH);
     digitalWrite(yellowLEDPin, HIGH);
-    tone(buzzerPin, 1000); // Plays a 1000Hz tone on the buzzer
-    Serial.println("-> STATUS: HIGH WATER ALARM!");
+    digitalWrite(buzzerPin, HIGH);
+    Serial.println(" -> STATUS: HIGH WATER ALARM!");
   } 
-  else if (sensorValue <= mediumWater) {
+  else if (sensorValue >= mediumWater) {
     // WARNING LEVEL 
     digitalWrite(blueLEDPin, HIGH);
     digitalWrite(greenLEDPin, HIGH);
-    Serial.println("-> STATUS: Medium Water");
+    Serial.println(" -> STATUS: Medium Water");
   } 
-  else if (sensorValue <= lowWater) {
+  else if (sensorValue >= lowWater) {
     // CAUTION LEVEL 
     digitalWrite(blueLEDPin, HIGH);
-    Serial.println("-> STATUS: Low Water Detected");
+    Serial.println(" -> STATUS: Low Water Detected");
   }
+  else if (sensorValue <= dryThreshold) {
+    // DRY AIR: Everything stays OFF
+    Serial.println(" -> STATUS: Dry (No water)");
+  } 
   else {
-    // DRY (High numbers like 1022)
-    Serial.println("-> STATUS: Dry");
+    // Catch-all for slight dampness between 40 and 100
+    Serial.println(" -> STATUS: Slightly Damp / Air Moisture");
   }
 
   delay(500); 
