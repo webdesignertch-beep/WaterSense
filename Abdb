@@ -1,0 +1,67 @@
+// --- SENSOR AND PIN DEFINITIONS ---
+const int waterSensorPin = A0; 
+
+const int buzzerPin = 8;     
+const int blueLEDPin = 9;    
+const int greenLEDPin = 10;  
+const int yellowLEDPin = 11; 
+
+// --- WATER LEVEL THRESHOLDS ---
+// Adjusted for your highly sensitive sensor
+const int lowWater = 100;    // Anything below 100 is considered "Dry"
+const int mediumWater = 500; // Halfway submerged
+const int highWater = 950;   // Mostly/fully submerged (triggers near your 1022 mark)
+
+void setup() {
+  // Start the Serial Monitor to watch values
+  Serial.begin(9600);
+  
+  // Set output pins
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(blueLEDPin, OUTPUT);
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(yellowLEDPin, OUTPUT);
+}
+
+void loop() {
+  // 1. Read the sensor
+  int sensorValue = analogRead(waterSensorPin);
+  
+  // 2. Print the reading to the monitor
+  Serial.print("Current Water Level: ");
+  Serial.println(sensorValue);
+
+  // 3. Reset all outputs to OFF before making a decision
+  digitalWrite(blueLEDPin, LOW);
+  digitalWrite(greenLEDPin, LOW);
+  digitalWrite(yellowLEDPin, LOW);
+  digitalWrite(buzzerPin, LOW);
+
+  // 4. Determine what to turn on based on the water level
+  if (sensorValue >= highWater) {
+    // DANGER LEVEL: All LEDs ON + Buzzer ON
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+    digitalWrite(yellowLEDPin, HIGH);
+    digitalWrite(buzzerPin, HIGH);
+    Serial.println("-> STATUS: HIGH WATER ALARM!");
+  } 
+  else if (sensorValue >= mediumWater) {
+    // WARNING LEVEL: Blue & Green LEDs ON
+    digitalWrite(blueLEDPin, HIGH);
+    digitalWrite(greenLEDPin, HIGH);
+    Serial.println("-> STATUS: Medium Water");
+  } 
+  else if (sensorValue >= lowWater) {
+    // CAUTION LEVEL: Blue LED ON
+    digitalWrite(blueLEDPin, HIGH);
+    Serial.println("-> STATUS: Low Water Detected");
+  }
+  else {
+    // DRY: Everything stays OFF
+    Serial.println("-> STATUS: Dry");
+  }
+
+  // Wait half a second before the next reading
+  delay(500); 
+}
